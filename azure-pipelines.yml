@@ -1,0 +1,161 @@
+variables:
+  poolName: 'rac-pool'
+  System.Debug: 'false'
+  coreInfrastructureName: 'rac-core-infra-$(Environment.Name)'
+  webAppName: 'rac-fileupload-web-$(Environment.Name)'
+  webAppName2: 'rac-fileupload-web-2-$(Environment.Name)'
+  azFunctionName: 'rac-fileinflate-func-$(Environment.Name)'
+  sendMailLogiAppName: 'rac-sendemail-$(Environment.Name)'
+  azureSubscriptionName: 'DevTest'
+  resourceGroupName: 'rac-demo-app'
+  stagingResourceGroupName: 'rac-staging'
+  armTemplateParameters: '-_artifactsLocation $(artifactsLocation) -_artifactsLocationSasToken "$(artifactsLocationSasToken)" -coreInfrastructureName $(coreInfrastructureName) -webAppName $(webAppName) -azFunctionName $(azFunctionName) -sendMailLogiAppName $(sendMailLogiAppName) -webAppName2 $(webAppName2)'
+
+trigger:
+  branches:
+    include:
+      - master
+      - refs/tags/v*
+pr:
+- master
+
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    pool: '$(poolName)'
+    steps:
+    - task: AzureFileCopy@3
+      displayName: 'Stage files'
+      inputs:
+        SourcePath: '$(System.DefaultWorkingDirectory)/templates'
+        azureSubscription: '$(azureSubscriptionName)'
+        Destination: 'AzureBlob'
+        storage: 'racstagingarea'
+        ContainerName: 'staging'
+        outputStorageUri: 'artifactsLocation'
+        outputStorageContainerSasToken: 'artifactsLocationSasToken'
+        sasTokenTimeOutInMinutes: '240'
+
+    - task: AzureResourceGroupDeployment@2
+      displayName: 'Validate ARM Templates'
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        resourceGroupName: '$(resourceGroupName)'
+        location: 'West Europe'
+        templateLocation: 'URL of the file'
+        csmFileLink: $(artifactsLocation)deployment/deployment.json$(artifactsLocationSasToken)
+        csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
+        overrideParameters: '$(armTemplateParameters)'
+        deploymentMode: 'Validation'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish ARM templates'
+      inputs:
+        path: $(System.DefaultWorkingDirectory)/templates
+        artifact: templates
+
+- stage: Deployment_Dev
+  jobs:
+  - deployment: deployment_dev
+    displayName: 'Dev'
+    pool: '$(poolName)'
+    environment: 'dev'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: AzureFileCopy@3
+              condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+              displayName: 'Stage files'
+              inputs:
+                SourcePath: '$(Pipeline.Workspace)/templates'
+                azureSubscription: '$(azureSubscriptionName)'
+                Destination: 'AzureBlob'
+                storage: 'racstagingarea'
+                ContainerName: 'staging'
+                outputStorageUri: 'artifactsLocation'
+                outputStorageContainerSasToken: 'artifactsLocationSasToken'
+                sasTokenTimeOutInMinutes: '240'
+
+            - task: AzureResourceGroupDeployment@2
+              condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+              displayName: 'Provision Infrastructure'
+              inputs:
+                azureSubscription: $(azureSubscriptionName)
+                resourceGroupName: '$(resourceGroupName)-$(Environment.Name)'
+                location: 'West Europe'
+                templateLocation: 'URL of the file'
+                csmFileLink: $(artifactsLocation)deployment/deployment.json$(artifactsLocationSasToken)
+                csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
+                overrideParameters: '$(armTemplateParameters)'
+
+- stage: Deployment_Test
+  jobs:
+  - deployment: deployment_test
+    displayName: 'Test'
+    pool: '$(poolName)'
+    environment: 'test'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: AzureFileCopy@3
+              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+              displayName: 'Stage files'
+              inputs:
+                SourcePath: '$(Pipeline.Workspace)/templates'
+                azureSubscription: '$(azureSubscriptionName)'
+                Destination: 'AzureBlob'
+                storage: 'racstagingarea'
+                ContainerName: 'staging'
+                outputStorageUri: 'artifactsLocation'
+                outputStorageContainerSasToken: 'artifactsLocationSasToken'
+                sasTokenTimeOutInMinutes: '240'
+
+            - task: AzureResourceGroupDeployment@2
+              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+              displayName: 'Provision Infrastructure'
+              inputs:
+                azureSubscription: $(azureSubscriptionName)
+                resourceGroupName: '$(resourceGroupName)-$(Environment.Name)'
+                location: 'West Europe'
+                templateLocation: 'URL of the file'
+                csmFileLink: $(artifactsLocation)deployment/deployment.json$(artifactsLocationSasToken)
+                csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
+                overrideParameters: '$(armTemplateParameters)'
+
+- stage: Deployment_Prod
+  jobs:
+  - deployment: deployment_prod
+    displayName: 'Prod'
+    pool: '$(poolName)'
+    environment: 'prod'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: AzureFileCopy@3
+              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+              displayName: 'Stage files'
+              inputs:
+                SourcePath: '$(Pipeline.Workspace)/templates'
+                azureSubscription: '$(azureSubscriptionName)'
+                Destination: 'AzureBlob'
+                storage: 'racstagingarea'
+                ContainerName: 'staging'
+                outputStorageUri: 'artifactsLocation'
+                outputStorageContainerSasToken: 'artifactsLocationSasToken'
+                sasTokenTimeOutInMinutes: '240'
+
+            - task: AzureResourceGroupDeployment@2
+              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+              displayName: 'Provision Infrastructure'
+              inputs:
+                azureSubscription: $(azureSubscriptionName)
+                resourceGroupName: '$(resourceGroupName)-$(Environment.Name)'
+                location: 'West Europe'
+                templateLocation: 'URL of the file'
+                csmFileLink: $(artifactsLocation)deployment/deployment.json$(artifactsLocationSasToken)
+                csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
+                overrideParameters: '$(armTemplateParameters)'

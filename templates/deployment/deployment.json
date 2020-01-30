@@ -1,0 +1,192 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "coreInfrastructureName": {
+            "type": "string",
+            "defaultValue": "someSuperWebApp"
+        },
+        "webAppName": {
+            "type": "string",
+            "defaultValue": "someSuperWebApp"
+        },
+        "webAppName2": {
+            "type": "string",
+            "defaultValue": "someSuperWebApp"
+        },
+        "azFunctionName": {
+            "type": "string",
+            "defaultValue": "someSuperWebApp"
+        },
+        "sendMailLogiAppName": {
+            "type": "string",
+            "defaultValue": "someSuperWebApp"
+        },
+        "_artifactsLocation": {
+            "type": "string"
+        },
+        "_artifactsLocationSasToken": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "artifactsLocation": "[concat(parameters('_artifactsLocation'))]",
+        //"artifactsLocation": "https://raw.githubusercontent.com/janisBerz/rac-core-infra-demo/connection-id/templates",
+        "appServicePlanName": "[parameters('coreInfrastructureName')]"
+    },
+    "resources": [
+        {
+            "name": "azureAppServicePlan",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-09-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('artifactsLocation'), 'azureAppServicePlan/azureAppServicePlan.json', parameters('_artifactsLocationSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "appServicePlanName": {
+                        "value": "[variables('appServicePlanName')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "appInsights",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-09-01",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('artifactsLocation'), 'appInsights/appInsights.json', parameters('_artifactsLocationSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "appInsightsName": {
+                        "value": "[parameters('coreInfrastructureName')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "webApp",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-09-01",
+            "dependsOn": [
+                "azureAppServicePlan",
+                "appInsights",
+                "azureFunction"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('artifactsLocation'), 'webApp/webApp.json', parameters('_artifactsLocationSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "appServicePlanName": {
+                        "value": "[variables('appServicePlanName')]"
+                    },
+                    "webAppName": {
+                        "value": "[parameters('webAppName')]"
+                    },
+                    "appInsightsInstrumentationKey": {
+                        "value": "[reference('appInsights').outputs.appInsightsInstrumentationKey.value]"
+                    },
+                    "storageAccountConnectionString": {
+                        "value": "[reference('azureFunction').outputs.storageAccountConnectionString.value]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "webApp-2",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-09-01",
+            "dependsOn": [
+                "azureAppServicePlan",
+                "appInsights",
+                "azureFunction"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('artifactsLocation'), 'webApp-2/webApp-2.json', parameters('_artifactsLocationSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "appServicePlanName": {
+                        "value": "[variables('appServicePlanName')]"
+                    },
+                    "webAppName": {
+                        "value": "[parameters('webAppName2')]"
+                    },
+                    "appInsightsInstrumentationKey": {
+                        "value": "[reference('appInsights').outputs.appInsightsInstrumentationKey.value]"
+                    },
+                    "storageAccountConnectionString": {
+                        "value": "[reference('azureFunction').outputs.storageAccountConnectionString.value]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "azureFunction",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-09-01",
+            "dependsOn": [
+                "azureAppServicePlan",
+                "appInsights"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('artifactsLocation'), 'azureFunction/azureFunction.json', parameters('_artifactsLocationSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "appServicePlanName": {
+                        "value": "[variables('appServicePlanName')]"
+                    },
+                    "appName": {
+                        "value": "[parameters('azFunctionName')]"
+                    },
+                    "appInsightsInstrumentationKey": {
+                        "value": "[reference('appInsights').outputs.appInsightsInstrumentationKey.value]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "sendEmailLogicApp",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-09-01",
+            "dependsOn": [
+                "azureFunction"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('artifactsLocation'), 'sendEmailLogicApp/sendEmailLogicApp.json', parameters('_artifactsLocationSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "workflowsName": {
+                        "value": "[parameters('sendMailLogiAppName')]"
+                    },
+                    "azFunctionAppResourceId": {
+                        "value": "[reference('azureFunction').outputs.azFunctionAppResourceId.value]"
+                    },
+                    "storageAccountName": {
+                        "value": "[reference('azureFunction').outputs.storageAccountName.value]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}

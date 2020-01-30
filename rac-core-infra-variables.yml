@@ -1,0 +1,10 @@
+variables:
+  poolName: 'rac-pool'
+  System.Debug: 'false'
+  coreInfrastructureName: 'rac-core-infra-$(Environment.Name)'
+  webAppName: 'rac-fileupload-web-$(Environment.Name)'
+  azFunctionName: 'rac-fileinflate-func-$(Environment.Name)'
+  sendMailLogiAppName: 'rac-sendemail-$(Environment.Name)'
+  azureSubscriptionName: 'DevTest'
+  resourceGroupName: 'rac-demo-app'
+  armTemplateParameters: '-coreInfrastructureName $(coreInfrastructureName) -webAppName $(webAppName) -azFunctionName $(azFunctionName) -sendMailLogiAppName $(sendMailLogiAppName)'
