@@ -13,14 +13,15 @@ New-Item -Path .\aws\temp\visma-demo-app -ItemType Directory -Force -Verbose
 New-Item -Path .\aws\temp\packages -ItemType Directory -Force -Verbose
 
 Write-Host "Staging artifacts..." -BackgroundColor Blue
-Compress-Archive -Path .\Publish\* -DestinationPath .\aws\site.zip -Verbose -Force
+Compress-Archive -Path .\Publish\* -DestinationPath .\aws\temp\site.zip -Verbose -Force
 
-Copy-Item .\aws\temp\aws-windows-deployment-manifest.json .\aws\visma-demo-app -Verbose
+Copy-Item .\aws\aws-windows-deployment-manifest.json .\aws\temp\visma-demo-app\aws-windows-deployment-manifest.json -Verbose -Force
 
 Move-Item .\aws\temp\site.zip .\aws\visma-demo-app -Verbose
 
 Write-Host "Creating deployment package..." -BackgroundColor Blue
-Compress-Archive -Path .\aws\temp\visma-demo-app\* -DestinationPath .\aws\packages\visma-demo-app.zip -Verbose -Force
+Compress-Archive -Path .\aws\temp\visma-demo-app\* -DestinationPath .\aws\temp\packages\visma-demo-app.zip -Verbose -Force
+
 
 
 
