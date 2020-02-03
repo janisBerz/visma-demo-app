@@ -120,6 +120,7 @@ stages:
     pool:
       vmImage: '$(poolName)'
     environment: 'test'
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
     strategy:
       runOnce:
         deploy:
@@ -154,6 +155,7 @@ stages:
     pool:
       vmImage: '$(poolName)'
     environment: 'prod'
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
     strategy:
       runOnce:
         deploy:
