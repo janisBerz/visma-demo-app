@@ -113,9 +113,13 @@ stages:
                 csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
                 overrideParameters: '$(armTemplateParameters)'
 
-            - template: jobs/deployment.yml@azureDevOpsTemplates
-              parameters:
-                webAppName: '$(webAppName)'
+            - task: AzureRmWebAppDeployment@4
+              displayName: 'Deploy Web App'
+              inputs:
+                appType: webApp
+                ConnectedServiceName: '${{ parameters.azureSubscriptionName }}'
+                WebAppName: '${{ parameters.WebAppName }}'
+                package: '$(Pipeline.Workspace)/app/*.zip'
 
 - stage: Deployment_Test
   jobs:
