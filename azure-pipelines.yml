@@ -31,7 +31,8 @@ stages:
   jobs:
   - template: jobs/dotNetCore.yml@azureDevOpsTemplates # Template reference
   - job: Build
-    pool: '$(poolName)'
+    pool:
+      vmImage: '$(poolName)'
     steps:
     - task: AzureFileCopy@3
       displayName: 'Stage files'
@@ -67,7 +68,8 @@ stages:
   jobs:
   - deployment: deployment_dev
     displayName: 'Dev'
-    pool: '$(poolName)'
+    pool:
+      vmImage: '$(poolName)'
     environment: 'dev'
     strategy:
       runOnce:
@@ -102,7 +104,8 @@ stages:
   jobs:
   - deployment: deployment_test
     displayName: 'Test'
-    pool: '$(poolName)'
+    pool:
+      vmImage: '$(poolName)'
     environment: 'test'
     strategy:
       runOnce:
@@ -137,7 +140,8 @@ stages:
   jobs:
   - deployment: deployment_prod
     displayName: 'Prod'
-    pool: '$(poolName)'
+    pool:
+      vmImage: '$(poolName)'
     environment: 'prod'
     strategy:
       runOnce:
