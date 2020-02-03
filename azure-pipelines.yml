@@ -3,7 +3,7 @@ variables:
   coreInfrastructureName: 'visma-demo-app-$(myInitials)-$(Environment.Name)'
   webAppName: '$(coreInfrastructureName)'
   stagingResourceGroupName: 'visma-demo-app-stg'
-  stagingStorageAccountName: 'vimsdemoappstg$(myInitials)'
+  stagingStorageAccountName: 'vimsademoappstg$(myInitials)'
   poolName: 'windows-latest'
   System.Debug: 'false'
   azureSubscriptionName: 'jb-visual-studio-professional'
