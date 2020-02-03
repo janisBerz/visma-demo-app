@@ -1,18 +1,20 @@
 variables:
-  myInitials: 'jb' # Updated initials
+  myInitials: 'jb' # Lower case initials
   coreInfrastructureName: 'visma-demo-app-$(myInitials)-$(Environment.Name)'
   webAppName: '$(coreInfrastructureName)'
+  stagingResourceGroupName: 'visma-demo-app-stg'
   poolName: 'windows-latest'
   System.Debug: 'false'
   azureSubscriptionName: 'jb-visual-studio-professional'
   resourceGroupName: 'visma-demo-app-staging-$(myInitials)'
   armTemplateParameters: '-_artifactsLocation $(artifactsLocation) -_artifactsLocationSasToken "$(artifactsLocationSasToken)" -coreInfrastructureName $(coreInfrastructureName) -webAppName $(webAppName)'
 
-trigger:
-  branches:
-    include:
-      - master
-      - refs/tags/v*
+# trigger:
+#   branches:
+#     include:
+#       - master
+#       - refs/tags/v*
+      
 pr:
 - master
 
@@ -30,10 +32,28 @@ stages:
 - stage: Build
   jobs:
   - template: jobs/dotNetCore.yml@azureDevOpsTemplates # Template reference
-  - job: Build
+
+  - job: Validate_ARM_templates
+    displayName: 'Validate ARM templates'
     pool:
       vmImage: '$(poolName)'
     steps:
+    - task: AzurePowerShell@4
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        scriptType: 'inlineScript' # Optional. Options: filePath, inlineScript
+        #scriptPath: # Optional
+        inline: |
+          $stagingResourceGroupName = 'visma-demo-app-stg'
+          $stagingStorageAccountName = 'vismademoappstgjb'
+          New-AzResourceGroup -Name $stagingResourceGroupName -Location 'West Europe'
+          New-AzStorageAccount -ResourceGroupName $stagingResourceGroupName -Name $stagingStorageAccountName -SkuName Standard_LRS -Location 'West Europe' -Kind StorageV2
+          New-AzRmStorageContainer -ResourceGroupName $stagingResourceGroupName -StorageAccountName $stagingStorageAccountName -Name 'staging'
+        #scriptArguments: # Optional
+        #errorActionPreference: 'stop' # Optional. Options: stop, continue, silentlyContinue
+        #failOnStandardError: false # Optional
+        #azurePowerShellVersion: 'OtherVersion' # Required. Options: latestVersion, otherVersion
+        #preferredAzurePowerShellVersion: # Required when azurePowerShellVersion == OtherVersion
     - task: AzureFileCopy@3
       displayName: 'Stage files'
       inputs:
