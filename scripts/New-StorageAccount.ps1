@@ -4,7 +4,7 @@ Param (
     [string]$stagingResourceGroupName = $env:stagingResourceGroupName ,
     [string]$stagingStorageAccountName = $env:stagingStorageAccountName
     )
-$existingStorageAccount = Get-AzStorageAccount -ResourceGroupName $stagingResourceGroupName -Name $stagingStorageAccountName -verbose
+$existingStorageAccount = Get-AzStorageAccount -ResourceGroupName $stagingResourceGroupName -Name $stagingStorageAccountName -verbose -ErrorAction SilentlyContinue
 Write-Host "Storage account name $existingStorageAccount"
 
 if ($null -eq $existingStorageAccount) {
