@@ -147,37 +147,3 @@ stages:
                 csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
                 overrideParameters: '$(armTemplateParameters)'
 
-- stage: Deployment_Prod
-  jobs:
-  - deployment: deployment_prod
-    displayName: 'Prod'
-    pool:
-      vmImage: '$(poolName)'
-    environment: 'prod'
-    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-            - task: AzureFileCopy@3
-              displayName: 'Stage files'
-              inputs:
-                SourcePath: '$(Pipeline.Workspace)/templates'
-                azureSubscription: '$(azureSubscriptionName)'
-                Destination: 'AzureBlob'
-                storage: '$(stagingStorageAccountName)'
-                ContainerName: 'staging'
-                outputStorageUri: 'artifactsLocation'
-                outputStorageContainerSasToken: 'artifactsLocationSasToken'
-                sasTokenTimeOutInMinutes: '240'
-
-            - task: AzureResourceGroupDeployment@2
-              displayName: 'Provision Infrastructure'
-              inputs:
-                azureSubscription: $(azureSubscriptionName)
-                resourceGroupName: '$(resourceGroupName)-$(Environment.Name)'
-                location: 'West Europe'
-                templateLocation: 'URL of the file'
-                csmFileLink: $(artifactsLocation)deployment/deployment.json$(artifactsLocationSasToken)
-                csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
-                overrideParameters: '$(armTemplateParameters)'
