@@ -15,8 +15,8 @@ variables:
 #     include:
 #       - master
 #       - refs/tags/v*
-pr:
-- master
+# pr:
+# - master
 
 
 # GitHub Repo that conatins build templates. Reference https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=vsts#using-other-repositories
