@@ -10,18 +10,6 @@
             "type": "string",
             "defaultValue": "someSuperWebApp"
         },
-        "webAppName2": {
-            "type": "string",
-            "defaultValue": "someSuperWebApp"
-        },
-        "azFunctionName": {
-            "type": "string",
-            "defaultValue": "someSuperWebApp"
-        },
-        "sendMailLogiAppName": {
-            "type": "string",
-            "defaultValue": "someSuperWebApp"
-        },
         "_artifactsLocation": {
             "type": "string"
         },
@@ -98,90 +86,6 @@
                     },
                     "storageAccountConnectionString": {
                         "value": "[reference('azureFunction').outputs.storageAccountConnectionString.value]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "webApp-2",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2016-09-01",
-            "dependsOn": [
-                "azureAppServicePlan",
-                "appInsights",
-                "azureFunction"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('artifactsLocation'), 'webApp-2/webApp-2.json', parameters('_artifactsLocationSasToken'))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "appServicePlanName": {
-                        "value": "[variables('appServicePlanName')]"
-                    },
-                    "webAppName": {
-                        "value": "[parameters('webAppName2')]"
-                    },
-                    "appInsightsInstrumentationKey": {
-                        "value": "[reference('appInsights').outputs.appInsightsInstrumentationKey.value]"
-                    },
-                    "storageAccountConnectionString": {
-                        "value": "[reference('azureFunction').outputs.storageAccountConnectionString.value]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "azureFunction",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2016-09-01",
-            "dependsOn": [
-                "azureAppServicePlan",
-                "appInsights"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('artifactsLocation'), 'azureFunction/azureFunction.json', parameters('_artifactsLocationSasToken'))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "appServicePlanName": {
-                        "value": "[variables('appServicePlanName')]"
-                    },
-                    "appName": {
-                        "value": "[parameters('azFunctionName')]"
-                    },
-                    "appInsightsInstrumentationKey": {
-                        "value": "[reference('appInsights').outputs.appInsightsInstrumentationKey.value]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "sendEmailLogicApp",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2016-09-01",
-            "dependsOn": [
-                "azureFunction"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('artifactsLocation'), 'sendEmailLogicApp/sendEmailLogicApp.json', parameters('_artifactsLocationSasToken'))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "workflowsName": {
-                        "value": "[parameters('sendMailLogiAppName')]"
-                    },
-                    "azFunctionAppResourceId": {
-                        "value": "[reference('azureFunction').outputs.azFunctionAppResourceId.value]"
-                    },
-                    "storageAccountName": {
-                        "value": "[reference('azureFunction').outputs.storageAccountName.value]"
                     }
                 }
             }
