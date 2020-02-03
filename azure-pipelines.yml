@@ -29,10 +29,10 @@ resources:
 stages:
 - stage: Build
   jobs:
+  - template: jobs/dotNetCore.yml@azureDevOpsTemplates # Template reference
   - job: Build
     pool: '$(poolName)'
     steps:
-    - template: jobs/dotNetCore.yml@azureDevOpsTemplates # Template reference
     - task: AzureFileCopy@3
       displayName: 'Stage files'
       inputs:
