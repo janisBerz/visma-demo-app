@@ -117,8 +117,8 @@ stages:
               displayName: 'Deploy Web App'
               inputs:
                 appType: webApp
-                ConnectedServiceName: '${{ parameters.azureSubscriptionName }}'
-                WebAppName: '${{ parameters.WebAppName }}'
+                ConnectedServiceName: $(azureSubscriptionName)
+                WebAppName: $(webAppName)
                 package: '$(Pipeline.Workspace)/app/*.zip'
 
 - stage: Deployment_Test
