@@ -7,7 +7,7 @@ variables:
   poolName: 'windows-latest'
   System.Debug: 'false'
   azureSubscriptionName: 'jb-visual-studio-professional'
-  resourceGroupName: 'visma-demo-app-staging-$(myInitials)'
+  resourceGroupName: 'visma-demo-app-$(myInitials)'
   armTemplateParameters: '-_artifactsLocation $(artifactsLocation) -_artifactsLocationSasToken "$(artifactsLocationSasToken)" -coreInfrastructureName $(coreInfrastructureName) -webAppName $(webAppName)'
 
 # trigger:
