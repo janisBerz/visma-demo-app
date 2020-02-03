@@ -52,7 +52,7 @@ stages:
         #scriptArguments: # Optional
         #errorActionPreference: 'stop' # Optional. Options: stop, continue, silentlyContinue
         #failOnStandardError: false # Optional
-        #azurePowerShellVersion: 'OtherVersion' # Required. Options: latestVersion, otherVersion
+        azurePowerShellVersion: 'latestVersion' # Required. Options: latestVersion, otherVersion
         #preferredAzurePowerShellVersion: # Required when azurePowerShellVersion == OtherVersion
     - task: AzureFileCopy@3
       displayName: 'Stage files'
