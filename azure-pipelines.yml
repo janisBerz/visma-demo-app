@@ -42,7 +42,7 @@ stages:
     - task: AzurePowerShell@4
       inputs:
         azureSubscription: $(azureSubscriptionName)
-        scriptType: 'inlineScript' # Optional. Options: filePath, inlineScript
+        scriptType: 'filePath' # Optional. Options: filePath, inlineScript
         scriptPath: .\scripts\New-StorageAccount.ps1
         azurePowerShellVersion: '3.1.0' # Required. Options: latestVersion, otherVersion
         scriptArguments: -stagingResourceGroupName $(stagingResourceGroupName) -stagingStorageAccountName $(stagingStorageAccountName)
