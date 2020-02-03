@@ -5,9 +5,6 @@
         "webAppName": {
             "value": "core-infra-dev"
         },
-        "azFunctionName": {
-            "value": "core-infra-dev"
-        },
         "_artifactsLocation": {
             "value": "core-infra-dev"
         },

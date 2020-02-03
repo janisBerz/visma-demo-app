@@ -1,37 +1,61 @@
 variables:
-  poolName: 'rac-pool'
+  myInitials: 'jb' # Lower case initials
+  coreInfrastructureName: 'visma-demo-app-$(myInitials)-$(Environment.Name)'
+  webAppName: '$(coreInfrastructureName)'
+  stagingResourceGroupName: 'visma-demo-app-stg'
+  stagingStorageAccountName: 'vimsademoappstg$(myInitials)'
+  poolName: 'windows-latest'
   System.Debug: 'false'
-  coreInfrastructureName: 'rac-core-infra-$(Environment.Name)'
-  webAppName: 'rac-fileupload-web-$(Environment.Name)'
-  webAppName2: 'rac-fileupload-web-2-$(Environment.Name)'
-  azFunctionName: 'rac-fileinflate-func-$(Environment.Name)'
-  sendMailLogiAppName: 'rac-sendemail-$(Environment.Name)'
-  azureSubscriptionName: 'DevTest'
-  resourceGroupName: 'rac-demo-app'
-  stagingResourceGroupName: 'rac-staging'
-  armTemplateParameters: '-_artifactsLocation $(artifactsLocation) -_artifactsLocationSasToken "$(artifactsLocationSasToken)" -coreInfrastructureName $(coreInfrastructureName) -webAppName $(webAppName) -azFunctionName $(azFunctionName) -sendMailLogiAppName $(sendMailLogiAppName) -webAppName2 $(webAppName2)'
+  azureSubscriptionName: 'jb-visual-studio-professional'
+  resourceGroupName: 'visma-demo-app-$(myInitials)'
+  armTemplateParameters: '-_artifactsLocation $(artifactsLocation) -_artifactsLocationSasToken "$(artifactsLocationSasToken)" -coreInfrastructureName $(coreInfrastructureName) -webAppName $(webAppName)'
 
-trigger:
-  branches:
-    include:
-      - master
-      - refs/tags/v*
-pr:
-- master
+# trigger:
+#   branches:
+#     include:
+#       - master
+#       - refs/tags/v*
+# pr:
+# - master
+
+
+# GitHub Repo that conatins build templates. Reference https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=vsts#using-other-repositories
+resources:
+  repositories:
+  - repository: azureDevOpsTemplates
+    type: github
+    name: janisBerz/rac-azure-devops-templates
+    endpoint: 'github.com_janisBerz'
+    ref: buildpackage-only  # optional ref to pin to
 
 stages:
 - stage: Build
   jobs:
-  - job: Build
-    pool: '$(poolName)'
+  - template: jobs/dotNetCore.yml@azureDevOpsTemplates # Template reference
+    parameters:
+      webAppName: $(webAppName)
+
+  - job: Validate_ARM_templates
+    displayName: 'Validate ARM templates'
+    pool:
+      vmImage: '$(poolName)'
     steps:
+
+    - task: AzurePowerShell@4
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        scriptType: 'filePath' # Optional. Options: filePath, inlineScript
+        scriptPath: .\scripts\New-StorageAccount.ps1
+        azurePowerShellVersion: '3.1.0' # Required. Options: latestVersion, otherVersion
+        scriptArguments: -stagingResourceGroupName $(stagingResourceGroupName) -stagingStorageAccountName $(stagingStorageAccountName)
+
     - task: AzureFileCopy@3
       displayName: 'Stage files'
       inputs:
         SourcePath: '$(System.DefaultWorkingDirectory)/templates'
         azureSubscription: '$(azureSubscriptionName)'
         Destination: 'AzureBlob'
-        storage: 'racstagingarea'
+        storage: '$(stagingStorageAccountName)'
         ContainerName: 'staging'
         outputStorageUri: 'artifactsLocation'
         outputStorageContainerSasToken: 'artifactsLocationSasToken'
@@ -59,27 +83,26 @@ stages:
   jobs:
   - deployment: deployment_dev
     displayName: 'Dev'
-    pool: '$(poolName)'
+    pool:
+      vmImage: '$(poolName)'
     environment: 'dev'
     strategy:
       runOnce:
         deploy:
           steps:
             - task: AzureFileCopy@3
-              condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
               displayName: 'Stage files'
               inputs:
                 SourcePath: '$(Pipeline.Workspace)/templates'
                 azureSubscription: '$(azureSubscriptionName)'
                 Destination: 'AzureBlob'
-                storage: 'racstagingarea'
+                storage: '$(stagingStorageAccountName)'
                 ContainerName: 'staging'
                 outputStorageUri: 'artifactsLocation'
                 outputStorageContainerSasToken: 'artifactsLocationSasToken'
                 sasTokenTimeOutInMinutes: '240'
 
             - task: AzureResourceGroupDeployment@2
-              condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
               displayName: 'Provision Infrastructure'
               inputs:
                 azureSubscription: $(azureSubscriptionName)
@@ -90,31 +113,39 @@ stages:
                 csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
                 overrideParameters: '$(armTemplateParameters)'
 
+            - task: AzureRmWebAppDeployment@4
+              displayName: 'Deploy Web App'
+              inputs:
+                appType: webApp
+                ConnectedServiceName: $(azureSubscriptionName)
+                WebAppName: $(webAppName)
+                package: '$(Pipeline.Workspace)/app/*.zip'
+
 - stage: Deployment_Test
   jobs:
   - deployment: deployment_test
     displayName: 'Test'
-    pool: '$(poolName)'
+    pool:
+      vmImage: '$(poolName)'
     environment: 'test'
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
     strategy:
       runOnce:
         deploy:
           steps:
             - task: AzureFileCopy@3
-              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
               displayName: 'Stage files'
               inputs:
                 SourcePath: '$(Pipeline.Workspace)/templates'
                 azureSubscription: '$(azureSubscriptionName)'
                 Destination: 'AzureBlob'
-                storage: 'racstagingarea'
+                storage: '$(stagingStorageAccountName)'
                 ContainerName: 'staging'
                 outputStorageUri: 'artifactsLocation'
                 outputStorageContainerSasToken: 'artifactsLocationSasToken'
                 sasTokenTimeOutInMinutes: '240'
 
             - task: AzureResourceGroupDeployment@2
-              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
               displayName: 'Provision Infrastructure'
               inputs:
                 azureSubscription: $(azureSubscriptionName)
@@ -129,27 +160,27 @@ stages:
   jobs:
   - deployment: deployment_prod
     displayName: 'Prod'
-    pool: '$(poolName)'
+    pool:
+      vmImage: '$(poolName)'
     environment: 'prod'
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
     strategy:
       runOnce:
         deploy:
           steps:
             - task: AzureFileCopy@3
-              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
               displayName: 'Stage files'
               inputs:
                 SourcePath: '$(Pipeline.Workspace)/templates'
                 azureSubscription: '$(azureSubscriptionName)'
                 Destination: 'AzureBlob'
-                storage: 'racstagingarea'
+                storage: '$(stagingStorageAccountName)'
                 ContainerName: 'staging'
                 outputStorageUri: 'artifactsLocation'
                 outputStorageContainerSasToken: 'artifactsLocationSasToken'
                 sasTokenTimeOutInMinutes: '240'
 
             - task: AzureResourceGroupDeployment@2
-              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
               displayName: 'Provision Infrastructure'
               inputs:
                 azureSubscription: $(azureSubscriptionName)
