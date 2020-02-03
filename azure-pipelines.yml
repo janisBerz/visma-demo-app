@@ -42,17 +42,12 @@ stages:
       inputs:
         azureSubscription: $(azureSubscriptionName)
         scriptType: 'inlineScript' # Optional. Options: filePath, inlineScript
-        #scriptPath: # Optional
-        inline: |
-          $stagingResourceGroupName = 'visma-demo-app-stg'
-          $stagingStorageAccountName = 'vismademoappstgjb'
-          New-AzResourceGroup -Name $stagingResourceGroupName -Location 'West Europe'
-          New-AzStorageAccount -ResourceGroupName $stagingResourceGroupName -Name $stagingStorageAccountName -SkuName Standard_LRS -Location 'West Europe' -Kind StorageV2
-          New-AzRmStorageContainer -ResourceGroupName $stagingResourceGroupName -StorageAccountName $stagingStorageAccountName -Name 'staging'
+        scriptPath: $(Build.SourcesDirectory)\scripts\New-StorageAccount.ps1
+        #inline:
         #scriptArguments: # Optional
         #errorActionPreference: 'stop' # Optional. Options: stop, continue, silentlyContinue
         #failOnStandardError: false # Optional
-        azurePowerShellVersion: 'latestVersion' # Required. Options: latestVersion, otherVersion
+        azurePowerShellVersion: '3.1.0' # Required. Options: latestVersion, otherVersion
         #preferredAzurePowerShellVersion: # Required when azurePowerShellVersion == OtherVersion
     - task: AzureFileCopy@3
       displayName: 'Stage files'
