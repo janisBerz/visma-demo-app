@@ -4,6 +4,7 @@ Param (
     [string]$stagingStorageAccountName = $env:stagingStorageAccountName
     )
 $existingStorageAccount = Get-AzStorageAccount -ResourceGroupName $stagingResourceGroupName -Name $stagingStorageAccountName -verbose
+Write-Host "Storage account name $existingStorageAccount"
 
 if ($null -eq $existingStorageAccount) {
     New-AzResourceGroup -Name $stagingResourceGroupName -Location 'West Europe' -verbose
