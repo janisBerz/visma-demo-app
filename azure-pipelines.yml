@@ -3,6 +3,7 @@ variables:
   coreInfrastructureName: 'visma-demo-app-$(myInitials)-$(Environment.Name)'
   webAppName: '$(coreInfrastructureName)'
   stagingResourceGroupName: 'visma-demo-app-stg'
+  stagingStorageAccountName: 'vimsdemoappstg$(myInitials)'
   poolName: 'windows-latest'
   System.Debug: 'false'
   azureSubscriptionName: 'jb-visual-studio-professional'
@@ -14,7 +15,6 @@ variables:
 #     include:
 #       - master
 #       - refs/tags/v*
-      
 pr:
 - master
 
@@ -38,24 +38,22 @@ stages:
     pool:
       vmImage: '$(poolName)'
     steps:
+
     - task: AzurePowerShell@4
       inputs:
         azureSubscription: $(azureSubscriptionName)
         scriptType: 'inlineScript' # Optional. Options: filePath, inlineScript
         scriptPath: $(Build.SourcesDirectory)\scripts\New-StorageAccount.ps1
-        #inline:
-        #scriptArguments: # Optional
-        #errorActionPreference: 'stop' # Optional. Options: stop, continue, silentlyContinue
-        #failOnStandardError: false # Optional
         azurePowerShellVersion: '3.1.0' # Required. Options: latestVersion, otherVersion
-        #preferredAzurePowerShellVersion: # Required when azurePowerShellVersion == OtherVersion
+        scriptArguments: -stagingResourceGroupName $(stagingResourceGroupName) -stagingStorageAccountName $(stagingStorageAccountName)
+
     - task: AzureFileCopy@3
       displayName: 'Stage files'
       inputs:
         SourcePath: '$(System.DefaultWorkingDirectory)/templates'
         azureSubscription: '$(azureSubscriptionName)'
         Destination: 'AzureBlob'
-        storage: 'racstagingarea'
+        storage: '$(stagingStorageAccountName)'
         ContainerName: 'staging'
         outputStorageUri: 'artifactsLocation'
         outputStorageContainerSasToken: 'artifactsLocationSasToken'
@@ -97,7 +95,7 @@ stages:
                 SourcePath: '$(Pipeline.Workspace)/templates'
                 azureSubscription: '$(azureSubscriptionName)'
                 Destination: 'AzureBlob'
-                storage: 'racstagingarea'
+                storage: '$(stagingStorageAccountName)'
                 ContainerName: 'staging'
                 outputStorageUri: 'artifactsLocation'
                 outputStorageContainerSasToken: 'artifactsLocationSasToken'
@@ -133,7 +131,7 @@ stages:
                 SourcePath: '$(Pipeline.Workspace)/templates'
                 azureSubscription: '$(azureSubscriptionName)'
                 Destination: 'AzureBlob'
-                storage: 'racstagingarea'
+                storage: '$(stagingStorageAccountName)'
                 ContainerName: 'staging'
                 outputStorageUri: 'artifactsLocation'
                 outputStorageContainerSasToken: 'artifactsLocationSasToken'
@@ -169,7 +167,7 @@ stages:
                 SourcePath: '$(Pipeline.Workspace)/templates'
                 azureSubscription: '$(azureSubscriptionName)'
                 Destination: 'AzureBlob'
-                storage: 'racstagingarea'
+                storage: '$(stagingStorageAccountName)'
                 ContainerName: 'staging'
                 outputStorageUri: 'artifactsLocation'
                 outputStorageContainerSasToken: 'artifactsLocationSasToken'
