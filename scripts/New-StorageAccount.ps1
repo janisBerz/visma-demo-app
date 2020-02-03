@@ -1,8 +1,8 @@
 
 [CmdletBinding()]
 Param (
-    [string]$stagingResourceGroupName = $env:stagingResourceGroupName ,
-    [string]$stagingStorageAccountName = $env:stagingStorageAccountName
+    [string]$stagingResourceGroupName,
+    [string]$stagingStorageAccountName
     )
 $existingStorageAccount = Get-AzStorageAccount -ResourceGroupName $stagingResourceGroupName -Name $stagingStorageAccountName -verbose -ErrorAction SilentlyContinue
 Write-Host "Storage account name $existingStorageAccount"
