@@ -1,15 +1,12 @@
 variables:
-  poolName: 'rac-pool'
+  myInitials: 'jb' # Updated initials
+  coreInfrastructureName: 'visma-demo-app-$(myInitials)-$(Environment.Name)'
+  webAppName: '$(coreInfrastructureName)'
+  poolName: 'windows-latest'
   System.Debug: 'false'
-  coreInfrastructureName: 'rac-core-infra-$(Environment.Name)'
-  webAppName: 'rac-fileupload-web-$(Environment.Name)'
-  webAppName2: 'rac-fileupload-web-2-$(Environment.Name)'
-  azFunctionName: 'rac-fileinflate-func-$(Environment.Name)'
-  sendMailLogiAppName: 'rac-sendemail-$(Environment.Name)'
-  azureSubscriptionName: 'DevTest'
-  resourceGroupName: 'rac-demo-app'
-  stagingResourceGroupName: 'rac-staging'
-  armTemplateParameters: '-_artifactsLocation $(artifactsLocation) -_artifactsLocationSasToken "$(artifactsLocationSasToken)" -coreInfrastructureName $(coreInfrastructureName) -webAppName $(webAppName) -azFunctionName $(azFunctionName) -sendMailLogiAppName $(sendMailLogiAppName) -webAppName2 $(webAppName2)'
+  azureSubscriptionName: 'jb-visual-studio-professional'
+  resourceGroupName: 'visma-demo-app-staging-$(myInitials)'
+  armTemplateParameters: '-_artifactsLocation $(artifactsLocation) -_artifactsLocationSasToken "$(artifactsLocationSasToken)" -coreInfrastructureName $(coreInfrastructureName) -webAppName $(webAppName)'
 
 trigger:
   branches:
