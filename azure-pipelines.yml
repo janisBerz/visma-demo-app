@@ -91,7 +91,6 @@ stages:
         deploy:
           steps:
             - task: AzureFileCopy@3
-              condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
               displayName: 'Stage files'
               inputs:
                 SourcePath: '$(Pipeline.Workspace)/templates'
@@ -104,7 +103,6 @@ stages:
                 sasTokenTimeOutInMinutes: '240'
 
             - task: AzureResourceGroupDeployment@2
-              condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
               displayName: 'Provision Infrastructure'
               inputs:
                 azureSubscription: $(azureSubscriptionName)
@@ -127,7 +125,6 @@ stages:
         deploy:
           steps:
             - task: AzureFileCopy@3
-              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
               displayName: 'Stage files'
               inputs:
                 SourcePath: '$(Pipeline.Workspace)/templates'
@@ -140,7 +137,6 @@ stages:
                 sasTokenTimeOutInMinutes: '240'
 
             - task: AzureResourceGroupDeployment@2
-              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
               displayName: 'Provision Infrastructure'
               inputs:
                 azureSubscription: $(azureSubscriptionName)
@@ -163,7 +159,6 @@ stages:
         deploy:
           steps:
             - task: AzureFileCopy@3
-              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
               displayName: 'Stage files'
               inputs:
                 SourcePath: '$(Pipeline.Workspace)/templates'
@@ -176,7 +171,6 @@ stages:
                 sasTokenTimeOutInMinutes: '240'
 
             - task: AzureResourceGroupDeployment@2
-              condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
               displayName: 'Provision Infrastructure'
               inputs:
                 azureSubscription: $(azureSubscriptionName)
