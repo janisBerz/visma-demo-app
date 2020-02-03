@@ -113,6 +113,10 @@ stages:
                 csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
                 overrideParameters: '$(armTemplateParameters)'
 
+            - template: jobs/deployment.yml@azureDevOpsTemplates
+              parameters:
+                webAppName: '$(webAppName)'
+
 - stage: Deployment_Test
   jobs:
   - deployment: deployment_test
