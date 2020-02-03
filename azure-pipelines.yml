@@ -32,6 +32,8 @@ stages:
 - stage: Build
   jobs:
   - template: jobs/dotNetCore.yml@azureDevOpsTemplates # Template reference
+    parameters:
+      webAppName: $(webAppName)
 
   - job: Validate_ARM_templates
     displayName: 'Validate ARM templates'
