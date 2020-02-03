@@ -25,3 +25,47 @@ stages:
   - template: jobs/dotNetCore.yml@azureDevOpsTemplates # Template reference
     parameters:
       webAppName: $(webAppName)
+
+  - job: Validate_ARM_templates
+    displayName: 'Validate ARM templates'
+    pool:
+      vmImage: '$(poolName)'
+    steps:
+
+    - task: AzurePowerShell@4
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        scriptType: 'filePath' # Optional. Options: filePath, inlineScript
+        scriptPath: .\scripts\New-StorageAccount.ps1
+        azurePowerShellVersion: '3.1.0' # Required. Options: latestVersion, otherVersion
+        scriptArguments: -stagingResourceGroupName $(stagingResourceGroupName) -stagingStorageAccountName $(stagingStorageAccountName)
+
+    - task: AzureFileCopy@3
+      displayName: 'Stage files'
+      inputs:
+        SourcePath: '$(System.DefaultWorkingDirectory)/templates'
+        azureSubscription: '$(azureSubscriptionName)'
+        Destination: 'AzureBlob'
+        storage: '$(stagingStorageAccountName)'
+        ContainerName: 'staging'
+        outputStorageUri: 'artifactsLocation' 
+        outputStorageContainerSasToken: 'artifactsLocationSasToken'
+        sasTokenTimeOutInMinutes: '240'
+
+    - task: AzureResourceGroupDeployment@2
+      displayName: 'Validate ARM Templates'
+      inputs:
+        azureSubscription: $(azureSubscriptionName)
+        resourceGroupName: '$(resourceGroupName)'
+        location: 'West Europe'
+        templateLocation: 'URL of the file'
+        csmFileLink: $(artifactsLocation)deployment/deployment.json$(artifactsLocationSasToken)
+        csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
+        overrideParameters: '$(armTemplateParameters)'
+        deploymentMode: 'Validation'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish ARM templates'
+      inputs:
+        path: $(System.DefaultWorkingDirectory)/templates
+        artifact: templates
