@@ -1,4 +1,5 @@
 
+[CmdletBinding()]
 Param (
     [string]$stagingResourceGroupName = $env:stagingResourceGroupName ,
     [string]$stagingStorageAccountName = $env:stagingStorageAccountName
