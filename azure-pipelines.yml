@@ -147,3 +147,10 @@ stages:
                 csmParametersFileLink: $(artifactsLocation)deployment/deployment.parameters.json$(artifactsLocationSasToken)
                 overrideParameters: '$(armTemplateParameters)'
 
+            - task: AzureRmWebAppDeployment@4
+              displayName: 'Deploy Web App'
+              inputs:
+                appType: webApp
+                ConnectedServiceName: $(azureSubscriptionName)
+                WebAppName: $(webAppName)
+                package: '$(Pipeline.Workspace)/app/*.zip'
