@@ -16,12 +16,23 @@ trigger:
 pr:
 - master
 
+
+# GitHub Repo that conatins build templates. Reference https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=vsts#using-other-repositories
+resources:
+  repositories:
+  - repository: azureDevOpsTemplates
+    type: github
+    name: janisBerz/rac-azure-devops-templates
+    endpoint: 'janisBerz'
+    ref: buildpackage-only  # optional ref to pin to
+
 stages:
 - stage: Build
   jobs:
   - job: Build
     pool: '$(poolName)'
     steps:
+    - template: jobs/dotNetCore.yml@azureDevOpsTemplates # Template reference
     - task: AzureFileCopy@3
       displayName: 'Stage files'
       inputs:
