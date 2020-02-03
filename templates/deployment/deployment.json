@@ -65,9 +65,7 @@
             "apiVersion": "2016-09-01",
             "dependsOn": [
                 "azureAppServicePlan",
-                "appInsights",
-                "azureFunction"
-            ],
+                "appInsights"            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -83,9 +81,6 @@
                     },
                     "appInsightsInstrumentationKey": {
                         "value": "[reference('appInsights').outputs.appInsightsInstrumentationKey.value]"
-                    },
-                    "storageAccountConnectionString": {
-                        "value": "[reference('azureFunction').outputs.storageAccountConnectionString.value]"
                     }
                 }
             }
