@@ -1,5 +1,8 @@
-# $stagingResourceGroupName = 'visma-demo-app-stg'
-# $stagingStorageAccountName = 'vismademoappstgjb'
+
+Param (
+    [string]$stagingResourceGroupName,
+    [string]$stagingStorageAccountName
+    )
 $existingStorageAccount = Get-AzStorageAccount -ResourceGroupName $stagingResourceGroupName -Name $stagingStorageAccountName -verbose
 
 if (!($existingStorageAccount)) {
