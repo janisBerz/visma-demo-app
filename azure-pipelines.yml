@@ -23,7 +23,7 @@ resources:
   - repository: azureDevOpsTemplates
     type: github
     name: janisBerz/rac-azure-devops-templates
-    endpoint: 'janisBerz'
+    endpoint: 'github.com_janisBerz'
     ref: buildpackage-only  # optional ref to pin to
 
 stages:
