@@ -1,7 +1,7 @@
 
 Param (
-    [string]$stagingResourceGroupName,
-    [string]$stagingStorageAccountName
+    [string]$stagingResourceGroupName = $env:stagingResourceGroupName ,
+    [string]$stagingStorageAccountName = $env:stagingStorageAccountName
     )
 $existingStorageAccount = Get-AzStorageAccount -ResourceGroupName $stagingResourceGroupName -Name $stagingStorageAccountName -verbose
 
